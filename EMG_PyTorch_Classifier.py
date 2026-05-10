@@ -8,7 +8,11 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset, ConcatDataset
 import torch.nn.functional as F
 
-Train = True # If set to True, runs convolution, if set to False jumps to loading last model generated
+Train = False # If set to True, runs convolution, if set to False jumps to loading last model generated
+
+#device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu" # Device agnostic code, see line below for the reson this is commented out.
+device = "cpu" # Manually hard-coded as my GPU has cuda but has a hardware architecture incompatable with modern pyToch leading to mistaken triggering of the Cuda accelerator
+print(f"Using device: {device}")
 
 # =============================================================================
 # Download the Dataset
@@ -315,7 +319,7 @@ predicted_labels = []
 # Create confusion matrix normalizing error with self-baseline error
 for X, y in test_loader:
     X = X.to(device)
-    with torch.no_grad():
+    with torch.inference_mode():
         logits = model(X)
         preds = torch.argmax(logits, dim=1)
     true_labels.extend(y.tolist())
